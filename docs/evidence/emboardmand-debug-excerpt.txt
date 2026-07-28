@@ -1,0 +1,117 @@
+Evidence for DEFECT-001 and DEFECT-002
+======================================
+Host:    cccnas6, ASUSTOR AS6812F (Flashstor), ADM 5.1.3.RI81, kernel 6.6.x x86_64
+Drives:  12x T-FORCE TM8FFH004T 4TB NVMe, RAID 6 (md1), 38T volume, 85% full
+Date:    2026-07-28
+Command: sudo /usr/sbin/emboardmand -debug
+
+
+1. The hardcoded PWM ceiling (DEFECT-001)
+-----------------------------------------
+Fan control attributes are initialised from a per-model table. Values are raw
+PWM out of 255. "Max: 80" is the absolute ceiling the daemon will ever request:
+
+    [EMBOARD] Init_Fan_Attribute(804):  --> Fan control attributes baseline
+    [EMBOARD] Init_Fan_Attribute(805):  --> Low: 40 Medium: 55 High: 70 Max: 80 Step: 5
+    [EMBOARD] Init_Fan_Attribute(810):  --> CPU target temp: 75 warning temp: 90
+    [EMBOARD] Init_Fan_Attribute(812):  --> HDD target temp: 52 warning temp: 58
+
+Per-fan ranges (Low, Medium, High, Max), again out of 255:
+
+    [EMBOARD] Thermal_Monitor_Thread(1714):  --> [3641708] Fan1 PWM: 25, 37, 55, 58
+    [EMBOARD] Thermal_Monitor_Thread(1714):  --> [3641708] Fan2 PWM: 40, 55, 70, 80
+
+Fan 1 can never exceed PWM 58/255 (23% duty) and fan 2 never exceeds 80/255
+(31%), no matter how hot the machine gets.
+
+The model profile is also incomplete on this 12-bay, 2-fan chassis (DEFECT-004):
+
+    [EMBOARD] Load_Hardware_Conf(620):   --> Load FanSpeed 3
+    [EMBOARD] Load_Hardware_Conf(645):   --> The nas bay number is 0
+    [EMBOARD] Reset_Led_Status(4919):    --> Failed to set front-usb led mode! (-153)
+    [EMBOARD] Reset_Led_Status(4950):    --> Failed to set 10g led mode! (-153)
+
+
+2. Maximum severity still yields ~30% duty (DEFECT-001)
+-------------------------------------------------------
+With SSDs reported at 79-80 C the SSD severity term reaches its maximum (Ssd: 4)
+and the loop selects its highest permitted band -- [55~58] and [70~80]:
+
+    [EMBOARD] Disk_Doctor_Service_Handler(4703): --> The maximum tempartue of SATA and M.2 SSDs is 80.
+    [EMBOARD] Thermal_Monitor_Thread(1815): --> [3641720] iCpu: 71 C, Hdd: 0 C, Ssd: 80 C, LAN: 0 C
+    [EMBOARD] Thermal_Monitor_Thread(1816): --> [3641720] Fan1 -- Cpu: 2, Hdd: 1, Ssd: 4, Lan: 0, Range: [55 ~ 58], Want: 55/0, PWM 52 -> 55
+    [EMBOARD] Thermal_Monitor_Thread(1816): --> [3641720] Fan2 -- Cpu: 2, Hdd: 1, Ssd: 4, Lan: 0, Range: [70 ~ 80], Want: 72/0, PWM 58 -> 61
+
+Note "PWM 52 -> 55": the loop moves in Step: 5 (observed +/-3 in practice) per
+2.5 s cycle, which is why any externally applied PWM decays back to the table
+value within a couple of minutes.
+
+Its own thresholds say SSD warning temp is 58 C. The drives are 22 C past that
+warning and the fans are still held to ~30% duty.
+
+
+3. Composite-only regulation (DEFECT-002)
+-----------------------------------------
+The thermal loop consumes exactly one temperature per drive -- the NVMe
+Composite sensor:
+
+    [EMBOARD] Disk_Doctor_Service_Handler(4698): --> The temp of M.2-8 is 80. (max: 69)
+    [EMBOARD] Thermal_Monitor_Thread(1815): --> [3641710] iCpu: 74 C, Hdd: 0 C, Ssd: 79 C, LAN: 0 C
+
+Read directly from sysfs at the same moment, the same drives expose two further
+sensors that ADM never reads. Composite vs Sensor 1 on cccnas6:
+
+    nvme9   Composite 73 C   Sensor 1 100 C   gap 27
+    nvme8   Composite 66 C   Sensor 1  90 C   gap 24
+    nvme7   Composite 55 C   Sensor 1  69 C   gap 14
+    nvme6   Composite 56 C   Sensor 1  69 C   gap 13
+    nvme1   Composite 54 C   Sensor 1  67 C   gap 13
+    nvme2   Composite 52 C   Sensor 1  65 C   gap 13
+    nvme4   Composite 46 C   Sensor 1  64 C   gap 18
+    nvme5   Composite 45 C   Sensor 1  58 C   gap 13
+    nvme3   Composite 47 C   Sensor 1  58 C   gap 11
+    nvme11  Composite 40 C   Sensor 1  53 C   gap 13
+
+Drive-declared limits (identical across all 12 drives):
+
+    temp1_max (Composite)  89 C     temp1_crit  109 C
+    temp2_max (Sensor 1)  119 C
+    temp3_max (Sensor 2)   89 C
+
+So ADM sees 73 C against an 89 C warning -- "healthy" -- while that drive's
+controller hot spot is at 100 C. 100 C is within the vendor's declared 119 C
+limit for that sensor, but it is invisible to every ADM display and to the fan
+logic.
+
+
+4. M.2 bay to device mapping
+----------------------------
+Extracted from the same debug run. Not derivable from PCI enumeration order,
+so realfanctrld ships it as slot_map keyed on PCI address:
+
+    M.2-1  [32, nvme0n1]   0000:01:00.0
+    M.2-2  [33, nvme5n1]   0000:08:00.0
+    M.2-3  [34, nvme10n1]  0000:0d:00.0
+    M.2-4  [35, nvme11n1]  0000:0e:00.0
+    M.2-5  [36, nvme8n1]   0000:0b:00.0
+    M.2-6  [37, nvme9n1]   0000:0c:00.0
+    M.2-7  [38, nvme6n1]   0000:09:00.0
+    M.2-8  [39, nvme7n1]   0000:0a:00.0
+    M.2-9  [40, nvme4n1]   0000:07:00.0
+    M.2-10 [41, nvme3n1]   0000:06:00.0
+    M.2-11 [42, nvme2n1]   0000:05:00.0
+    M.2-12 [43, nvme1n1]   0000:04:00.0
+
+
+5. Measured throughput impact
+-----------------------------
+Sustained 4 GB SMB write to the same share, same client (10GbE Mac Studio),
+same array, differing only in how long the box had been under load:
+
+    cool chassis (fans manually forced to PWM 235):  590 MB/s
+    hot chassis  (fans at the ADM ceiling):          113 MB/s
+
+Fan speeds at the two PWM levels, from `fanctrl -getfanspeed`:
+
+    ADM ceiling   PWM 55 / 71   ->  1502 / 2198 RPM
+    forced        PWM 235/235   ->  3841 / 5793 RPM

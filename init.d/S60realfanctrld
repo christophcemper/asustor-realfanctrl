@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# realfanctrld — adaptive fan daemon for ASUSTOR ADM.
+#
+# Author:     Christoph C. Cemper / Magosol Kft.
+# Repository: https://github.com/christophcemper/asustor-realfanctrl
+# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F.
+#
+# Installed as /usr/local/etc/init.d/S60realfanctrld so ADM's rcS.pluginsfs
+# starts it at boot. /usr/local is a symlink to /volume1/.@plugins, so this
+# survives reboots; /etc and /usr/builtin do NOT (they live on the boot
+# ramdisk and are rebuilt from the firmware image every time).
+
+BIN=/usr/local/bin/realfanctrld
+CONF=/usr/local/etc/realfanctrl.conf
+LOGDIR=/usr/local/var/log
+LOG=$LOGDIR/realfanctrld.log
+PIDFILE=/var/run/realfanctrld.pid
+
+case "$1" in
+  start)
+    if [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
+        echo "realfanctrld already running (pid $(cat $PIDFILE))"
+        exit 0
+    fi
+    [ -x "$BIN" ] || { echo "realfanctrld: $BIN missing or not executable"; exit 1; }
+    mkdir -p "$LOGDIR"
+    # Keep the log from growing without bound across reboots.
+    if [ -f "$LOG" ] && [ "$(wc -c < "$LOG")" -gt 2000000 ]; then
+        mv "$LOG" "$LOG.1"
+    fi
+    echo "Starting realfanctrld..."
+    nohup "$BIN" -config "$CONF" >> "$LOG" 2>&1 &
+    echo $! > "$PIDFILE"
+    ;;
+
+  stop)
+    if [ -f "$PIDFILE" ]; then
+        kill "$(cat $PIDFILE)" 2>/dev/null
+        rm -f "$PIDFILE"
+        echo "Stopped realfanctrld (emboardmand resumes fan control)"
+    else
+        killall realfanctrld 2>/dev/null
+    fi
+    ;;
+
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+
+  status)
+    if [ -f "$PIDFILE" ] && kill -0 "$(cat $PIDFILE)" 2>/dev/null; then
+        echo "realfanctrld running (pid $(cat $PIDFILE))"
+        # A running daemon older than the installed binary or config is stale:
+        # it holds the previous build and settings in memory until restarted.
+        if [ "$BIN" -nt "/proc/$(cat $PIDFILE)" ] || [ "$CONF" -nt "/proc/$(cat $PIDFILE)" ]; then
+            echo "WARNING: binary or config is newer than the running process."
+            echo "         Run '$0 restart' to load it."
+        fi
+    else
+        echo "realfanctrld not running"
+    fi
+    "$BIN" -config "$CONF" -status
+    ;;
+
+  log)
+    tail -f "$LOG"
+    ;;
+
+  *)
+    echo "usage: $0 {start|stop|restart|status|log}"
+    exit 1
+    ;;
+esac
+
+exit 0
