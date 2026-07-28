@@ -148,7 +148,8 @@ make deploy NAS=your-nas-host
 
 ## CLI
 
-With [`.bash_aliases`](.bash_aliases) sourced on the NAS:
+With [`.bash_aliases`](.bash_aliases) sourced on the NAS (via `~/.profile` —
+ADM has no bash, see [INSTALL.md](INSTALL.md#4-shell-aliases-optional-but-recommended)):
 
 | Command | Does |
 |---------|------|

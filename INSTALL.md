@@ -71,15 +71,27 @@ sudo /usr/local/etc/init.d/S60realfanctrld start
 
 ### 4. Shell aliases (optional but recommended)
 
+**ADM ships no bash.** `/bin/sh` is busybox ash, `/bin/bash` does not exist, and
+`~/.bashrc` is read by nothing. Busybox reads `~/.profile` for login shells, so
+hook it in there:
+
 ```bash
-cp ~/.bash_aliases ~/.bash_aliases.bak 2>/dev/null
-install -m 644 ~/.bash_aliases ~/.bash_aliases
-grep -q bash_aliases ~/.bashrc || echo '[ -f ~/.bash_aliases ] && . ~/.bash_aliases' >> ~/.bashrc
-. ~/.bashrc
+printf '%s\n' '[ -f "$HOME/.bash_aliases" ] && . "$HOME/.bash_aliases"' >> ~/.profile
+. ~/.bash_aliases
 ```
 
 This gives you `realfanctrl start|stop|restart|status|log` plus the `rfc-*`
-diagnostics listed in the README.
+diagnostics listed in the README, on every future login.
+
+> **Gotcha:** busybox's `.` and `source` search `$PATH` when the argument has no
+> slash in it, so `source .bash_aliases` fails with `not found`. Always give it
+> a path — `. ~/.bash_aliases` or `. ./.bash_aliases`.
+
+The file is deliberately POSIX-sh clean so it works under both busybox ash and
+bash/zsh. Note that shell **functions** cannot have hyphens in their names under
+busybox (`rfc-remote()` fails with `bad function name`), which is why the two
+multi-host helpers are `rfc_remote` / `rfc_all`, with hyphenated aliases
+provided as well.
 
 ## Verify
 
@@ -236,6 +248,13 @@ or a dead spot in the chassis airflow. Verify uniform load with:
 ```bash
 grep -E 'nvme[0-9]+n1 ' /proc/diskstats
 ```
+
+### `source .bash_aliases` says "not found"
+
+Busybox's `.` / `source` searches `$PATH` unless the argument contains a slash.
+Use `. ~/.bash_aliases`. If you instead get `syntax error: bad function name`,
+you have an old copy of the file — busybox rejects hyphenated function names;
+take the current one.
 
 ### `fanctrl` fails with `-13`
 
