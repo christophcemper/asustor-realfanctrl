@@ -4,7 +4,7 @@
 #
 # Author:     Christoph C. Cemper / Magosol Kft.
 # Repository: https://github.com/christophcemper/asustor-realfanctrl
-# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F.
+# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F / FS6812X.
 #
 # Installed as /usr/local/bin/realfanctrl, which is on ADM's default PATH, so
 # this works from any shell without sourcing anything. It is a thin dispatcher:
@@ -33,7 +33,7 @@ usage: realfanctrl <command>
   config       edit the curve, then restart
   version      version and build info
 
-Tested only on ASUSTOR AS6812F / ADM 5.1.3.RI81. No warranty.
+Tested only on ASUSTOR AS6812F / FS6812X / ADM 5.1.3.RI81. No warranty.
 EOF
 }
 

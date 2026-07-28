@@ -5,7 +5,7 @@
 # License:    MIT — see LICENSE.
 #
 # NO GUARANTEES: this software drives cooling hardware and has only been tested
-# on ASUSTOR AS6812F / ADM 5.1.3.RI81. See README.md before deploying.
+# on ASUSTOR AS6812F / FS6812X / ADM 5.1.3.RI81. See README.md before deploying.
 #
 # Common use:
 #   make                        build for the NAS (linux/amd64)
@@ -18,7 +18,7 @@ BINARY      := realfanctrld
 PKG         := .
 DIST        := dist
 
-# ASUSTOR ADM on the AS6812F is x86_64 Linux. Static build: the NAS has no
+# ASUSTOR ADM on the AS6812F / FS6812X is x86_64 Linux. Static build: the NAS has no
 # usable libc toolchain and CGO would tie us to the build host's glibc.
 GOOS        ?= linux
 GOARCH      ?= amd64

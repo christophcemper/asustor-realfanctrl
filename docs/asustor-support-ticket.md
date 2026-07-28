@@ -10,18 +10,18 @@ ticket number in the submission log in [../ASUSTOR-DEFECTS.md](../ASUSTOR-DEFECT
 
 ## Subject
 
-`AS6812F / ADM 5.1.3.RI81: fan PWM capped at 23–31% duty and thermal control ignores NVMe hot-spot sensors`
+`FS6812X (AS6812F) / ADM 5.1.3.RI81: fan PWM capped at 23–31% duty and thermal control ignores NVMe hot-spot sensors`
 
 ## Body
 
 Hello,
 
-I have identified two reproducible defects in ADM's fan control on the AS6812F.
+I have identified two reproducible defects in ADM's fan control on the AS6812F / FS6812X.
 Together they cause sustained thermal throttling under normal load: my NVMe
 controllers reach 100 °C while ADM reports 73 °C and holds the fans at roughly
 a quarter of their capability.
 
-**Affected units:** 2 × AS6812F (both behave identically)
+**Affected units:** 2 × FS6812X / Flashstor 12 Pro (ADM internal model `AS6812F`) — both behave identically
 **ADM version:** 5.1.3.RI81
 **Serial number:** `<FILL IN>`
 **Drives:** 12 × T-FORCE TM8FFH004T 4 TB NVMe, RAID 6
@@ -117,7 +117,7 @@ reliability cost of running NVMe controllers 30–45 °C hotter than necessary.
   `Failed to set front-usb led mode! (-153)` and
   `Failed to set 10g led mode! (-153)` on every boot.
   `/usr/etc.base/emboard.conf` declares `[Disk] Internal = 6` and only a
-  `[Fan1]` section on a 12-bay, 2-fan chassis. This suggests the AS6812F
+  `[Fan1]` section on a 12-bay, 2-fan chassis. This suggests the AS6812F / FS6812X
   inherited another model's platform profile, which would also explain the
   wrong fan table.
 - **Failed LACP setup left the NAS unreachable.** Creating an 802.3ad bond from
@@ -129,7 +129,7 @@ reliability cost of running NVMe controllers 30–45 °C hotter than necessary.
 
 ### What I am asking for
 
-1. Confirmation that you can reproduce Defect 1 and Defect 2 on the AS6812F.
+1. Confirmation that you can reproduce Defect 1 and Defect 2 on the AS6812F / FS6812X.
 2. A firmware fix that (a) allows the fan table to use the hardware's real PWM
    range, and (b) feeds the maximum of all exposed NVMe sensors into the thermal
    loop and the disk health UI.
@@ -149,7 +149,7 @@ Christoph C. Cemper / Magosol Kft.
 
 ## Short version (if the form has a character limit)
 
-> AS6812F, ADM 5.1.3.RI81, two units affected. Serial `<FILL IN>`.
+> AS6812F / FS6812X, ADM 5.1.3.RI81, two units affected. Serial `<FILL IN>`.
 >
 > Two reproducible fan-control defects.
 >

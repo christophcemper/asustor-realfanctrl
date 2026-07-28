@@ -12,7 +12,7 @@ looks at the sensor that matters.
 > warranty**, and it has **not** undergone extended or broad testing.
 >
 > It was developed and tested on exactly **one** machine type: **ASUSTOR
-> AS6812F (Flashstor), ADM 5.1.3.RI81, 12 × NVMe**. Behaviour on any other
+> FS6812X / Flashstor 12 Pro (ADM internal model AS6812F), ADM 5.1.3.RI81, 12 × NVMe**. Behaviour on any other
 > model, ADM release, fan controller, or drive combination is **unverified**.
 >
 > The fan curves, the PWM range, the M.2 slot map, and the assumption that
@@ -213,7 +213,7 @@ The applied PWM is the **highest** of what the three curves ask for.
 
 ## Porting to another ASUSTOR model
 
-Nothing here is AS6812F-specific by design, but the defaults are. To adapt:
+Nothing here is AS6812F / FS6812X-specific by design, but the defaults are. To adapt:
 
 1. `rfc-sensors` — check which chips and labels your box exposes.
 2. `rfc-slots` — get your PCI → device mapping, then get the bay numbering from

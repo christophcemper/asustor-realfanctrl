@@ -2,7 +2,7 @@
 #
 # Author:     Christoph C. Cemper / Magosol Kft.
 # Repository: https://github.com/christophcemper/asustor-realfanctrl
-# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F.
+# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR FS6812X / AS6812F / FS6812X.
 #
 # POSIX sh compatible on purpose. ADM ships NO bash: /bin/sh is busybox ash and
 # /bin/bash does not exist, so nothing here may use bashisms. In particular,

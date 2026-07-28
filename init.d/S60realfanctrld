@@ -4,7 +4,7 @@
 #
 # Author:     Christoph C. Cemper / Magosol Kft.
 # Repository: https://github.com/christophcemper/asustor-realfanctrl
-# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F.
+# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR FS6812X / AS6812F / FS6812X.
 #
 # Installed as /usr/local/etc/init.d/S60realfanctrld so ADM's rcS.pluginsfs
 # starts it at boot. /usr/local is a symlink to /volume1/.@plugins, so this

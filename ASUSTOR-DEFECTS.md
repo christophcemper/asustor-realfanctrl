@@ -1,12 +1,12 @@
 # ASUSTOR ADM defect report
 
-Findings from diagnosing an ASUSTOR AS6812F running ADM 5.1.3.RI81, documented
+Findings from diagnosing an ASUSTOR AS6812F / FS6812X running ADM 5.1.3.RI81, documented
 so they can be filed with ASUSTOR support and tracked to a resolution.
 
 **Author:** Christoph C. Cemper / Magosol Kft.
 **Repository:** https://github.com/christophcemper/asustor-realfanctrl
 
-> All measurements below come from two AS6812F units. Nothing here has been
+> All measurements below come from two AS6812F / FS6812X units. Nothing here has been
 > verified on any other ASUSTOR model or ADM release.
 
 ## Status
@@ -16,7 +16,7 @@ so they can be filed with ASUSTOR support and tracked to a resolution.
 | [DEFECT-001](#defect-001--fan-pwm-ceiling-hardcoded-at-23-31-duty) | Fan PWM ceiling hardcoded at 23–31% duty | **Critical** | 2026-07-28 | _not yet submitted_ | — | Open |
 | [DEFECT-002](#defect-002--fan-control-ignores-nvme-sensor-1--sensor-2) | Fan control ignores NVMe Sensor 1 / Sensor 2 | **Critical** | 2026-07-28 | _not yet submitted_ | — | Open |
 | [DEFECT-003](#defect-003--ui-fan-speed-setting-has-no-effect) | UI fan speed setting has no effect | High | 2026-07-28 | _not yet submitted_ | — | Open |
-| [DEFECT-004](#defect-004--incomplete-model-profile-for-as6812f) | Incomplete model profile for AS6812F | Medium | 2026-07-28 | _not yet submitted_ | — | Open |
+| [DEFECT-004](#defect-004--incomplete-model-profile-for-AS6812F / FS6812X) | Incomplete model profile for AS6812F / FS6812X | Medium | 2026-07-28 | _not yet submitted_ | — | Open |
 | [DEFECT-005](#defect-005--failed-lacp-setup-leaves-the-nas-unreachable) | Failed LACP setup leaves the NAS unreachable | High | 2026-07-28 | _not yet submitted_ | — | Open |
 
 **Submission log**
@@ -31,14 +31,14 @@ Ready-to-send ticket text: [docs/asustor-support-ticket.md](docs/asustor-support
 
 | Item | Value |
 |------|-------|
-| Model | ASUSTOR AS6812F (Flashstor), `/etc/nas.conf` reports `Model = AS6812F` |
+| Model | ASUSTOR **FS6812X** (Flashstor 12 Pro). `/etc/nas.conf` carries both names: `ModelName = FS6812X` (the retail name) and `Model = AS6812F` (the internal designation used throughout ADM's tooling and log output) |
 | ADM version | 5.1.3.RI81 (`Version` in `/etc/nas.conf`), last updated 2026-06-16 |
 | Kernel | Linux 6.6.x x86_64 |
 | Drives | 12 × T-FORCE TM8FFH004T 4 TB NVMe |
 | Array | RAID 6 (`md1`), 38 TB, ~85% full, btrfs |
 | Fans | 2 (`fanctrl` addresses fan id 0 and 1) |
 | Fan MCU | PIC16F1829 via `/dev/ttyS1`, driven by `emboardmand` through `libndal` |
-| Units affected | Both AS6812F units tested (hostnames cccnas6, cccnas7) |
+| Units affected | Both AS6812F / FS6812X units tested (hostnames cccnas6, cccnas7) |
 
 Reproduction tooling: `sudo /usr/sbin/emboardmand -debug`, `sudo /usr/sbin/fanctrl -getfanspeed`,
 and direct sysfs reads under `/sys/class/hwmon/`. Full capture:
@@ -51,7 +51,7 @@ and direct sysfs reads under `/sys/class/hwmon/`. Full capture:
 ### Description
 
 `emboardmand` initialises its fan control from a per-model table whose maximum
-is far below what the hardware can deliver. On the AS6812F fan 0 can never be
+is far below what the hardware can deliver. On the AS6812F / FS6812X fan 0 can never be
 driven above PWM 58/255 (~23% duty) and fan 1 never above PWM 80/255 (~31%),
 regardless of temperature. No configuration file overrides this.
 
@@ -116,7 +116,7 @@ necessary.
 
 ### Suggested fix
 
-Raise the AS6812F fan table to the hardware's real range (PWM up to 255), or
+Raise the AS6812F / FS6812X fan table to the hardware's real range (PWM up to 255), or
 honour `HighSpeed` from `/etc/nas.conf` as the ceiling so operators can raise it.
 
 ## DEFECT-002 — Fan control ignores NVMe Sensor 1 / Sensor 2
@@ -189,13 +189,13 @@ control is inert. This is what makes DEFECT-001 hard to discover.
 Make the UI setting authoritative over the thermal loop's ceiling, or disable
 the control and state that fan speed is automatic.
 
-## DEFECT-004 — Incomplete model profile for AS6812F
+## DEFECT-004 — Incomplete model profile for AS6812F / FS6812X
 
 **Severity: Medium** · Found 2026-07-28 · Submitted: _not yet_ · Response: —
 
 ### Description
 
-Several platform values shipped for the AS6812F do not match the hardware.
+Several platform values shipped for the AS6812F / FS6812X do not match the hardware.
 
 ### Evidence
 
@@ -217,12 +217,12 @@ boot.
 
 ### Impact
 
-Suggests the AS6812F inherited another model's profile, which is consistent
+Suggests the AS6812F / FS6812X inherited another model's profile, which is consistent
 with the wrong fan table in DEFECT-001.
 
 ### Suggested fix
 
-Ship a correct platform profile for the AS6812F: 12 bays, 2 fans, correct LED
+Ship a correct platform profile for the AS6812F / FS6812X: 12 bays, 2 fans, correct LED
 map, correct fan PWM range.
 
 ## DEFECT-005 — Failed LACP setup leaves the NAS unreachable

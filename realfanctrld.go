@@ -12,7 +12,7 @@
 //
 // It has been developed and tested on exactly ONE machine type:
 //
-//	ASUSTOR AS6812F (Flashstor), ADM 5.1.3.RI81, 12x NVMe, x86_64.
+//	ASUSTOR FS6812X / AS6812F / FS6812X (Flashstor 12 Pro), ADM 5.1.3.RI81, 12x NVMe, x86_64.
 //
 // Behaviour on any other ASUSTOR model, ADM release, fan controller or drive
 // combination is UNVERIFIED. The fan curves, the PWM range, the M.2 slot map
@@ -26,7 +26,7 @@
 // ---------------------------------------------------------------------------
 //
 // ADM's emboardmand derives fan PWM from each NVMe drive's Composite sensor and
-// clamps the result to a per-model table — on the AS6812F that ceiling is 58 for
+// clamps the result to a per-model table — on the AS6812F / FS6812X that ceiling is 58 for
 // fan 0 and 80 for fan 1, out of 255, even when its own logic has escalated to
 // the maximum severity. Meanwhile each drive's "Sensor 1" hot spot runs 15-25 C
 // above Composite and is never consulted.
@@ -118,7 +118,7 @@ type Config struct {
 	NICCurve     Curve `json:"nic_curve"`
 	// SlotMap labels drives by physical bay, keyed on PCI address. ADM keeps
 	// this mapping compiled into emboardmand; the defaults below were read off
-	// an AS6812F via `emboardmand -debug`. PCI address is used rather than the
+	// an AS6812F / FS6812X via `emboardmand -debug`. PCI address is used rather than the
 	// nvmeN name because it is fixed by the wiring, not by probe order.
 	SlotMap map[string]string `json:"slot_map"`
 	// IgnoreSensors excludes individual sensors from the curves, for drives
@@ -438,7 +438,7 @@ func (r Reading) Where() string {
 }
 
 // groupFor maps an hwmon chip name to a curve group. acpitz is deliberately
-// excluded: on the AS6812F it reports a constant 20 C and is meaningless.
+// excluded: on the AS6812F / FS6812X it reports a constant 20 C and is meaningless.
 func groupFor(chip string) string {
 	switch {
 	case chip == "nvme":
@@ -686,7 +686,7 @@ func main() {
 	if *showVersion {
 		fmt.Printf("realfanctrld %s (commit %s, built %s)\n", version, commit, built)
 		fmt.Println("Christoph C. Cemper / Magosol Kft. — MIT licensed, no warranty.")
-		fmt.Println("Tested only on ASUSTOR AS6812F / ADM 5.1.3.RI81.")
+		fmt.Println("Tested only on ASUSTOR FS6812X (AS6812F / FS6812X) / ADM 5.1.3.RI81.")
 		return
 	}
 

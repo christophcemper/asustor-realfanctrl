@@ -1,7 +1,7 @@
 # Installing asustor-realfanctrl
 
 > **Read the warning in [README.md](README.md) first.** This drives cooling
-> hardware, has no warranty, and has only been tested on an ASUSTOR AS6812F
+> hardware, has no warranty, and has only been tested on an ASUSTOR AS6812F / FS6812X
 > running ADM 5.1.3.RI81.
 
 ## Requirements

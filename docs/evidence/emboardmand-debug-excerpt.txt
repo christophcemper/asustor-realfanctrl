@@ -1,6 +1,6 @@
 Evidence for DEFECT-001 and DEFECT-002
 ======================================
-Host:    cccnas6, ASUSTOR AS6812F (Flashstor), ADM 5.1.3.RI81, kernel 6.6.x x86_64
+Host:    cccnas6, ASUSTOR AS6812F / FS6812X (Flashstor), ADM 5.1.3.RI81, kernel 6.6.x x86_64
 Drives:  12x T-FORCE TM8FFH004T 4TB NVMe, RAID 6 (md1), 38T volume, 85% full
 Date:    2026-07-28
 Command: sudo /usr/sbin/emboardmand -debug
