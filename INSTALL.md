@@ -57,19 +57,28 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o rea
 ### 2. Copy to the NAS
 
 ```bash
-scp realfanctrld init.d/S60realfanctrld .bash_aliases your-nas-host:~/
+scp realfanctrld bin/realfanctrl init.d/S60realfanctrld .bash_aliases your-nas-host:~/
 ```
 
 ### 3. Install (on the NAS)
 
 ```bash
 sudo install -m 755 ~/realfanctrld /usr/local/bin/realfanctrld
+sudo install -m 755 ~/realfanctrl /usr/local/bin/realfanctrl
 sudo install -m 755 ~/S60realfanctrld /usr/local/etc/init.d/S60realfanctrld
 sudo /usr/local/bin/realfanctrld -write-config
 sudo /usr/local/etc/init.d/S60realfanctrld start
 ```
 
-### 4. Shell aliases (optional but recommended)
+Two binaries go in: `realfanctrld` is the daemon, `realfanctrl` is the CLI you
+actually type. `/usr/local/bin` is on ADM's default PATH, so `realfanctrl`
+works immediately from any shell — no alias, no `~/.profile`, no re-login.
+
+### 4. Shell aliases (optional)
+
+Everything documented in the README works without this step. The aliases are
+just shorthand (`rfc`, `rfc-status`, …) plus three raw diagnostics
+(`rfc-sensors`, `rfc-slots`, `rfc-adm-debug`).
 
 **ADM ships no bash.** `/bin/sh` is busybox ash, `/bin/bash` does not exist, and
 `~/.bashrc` is read by nothing. Busybox reads `~/.profile` for login shells, so

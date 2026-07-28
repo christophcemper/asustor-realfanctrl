@@ -26,8 +26,11 @@
 
 # ---------------------------------------------------------------------------
 # Main CLI:  realfanctrl start|stop|restart|status|log
+#
+# NOTE: `realfanctrl` is a real command at /usr/local/bin/realfanctrl, which is
+# on ADM's default PATH. It needs no alias and works from any shell, including
+# non-interactive ones and cron. Everything in this file is optional shorthand.
 # ---------------------------------------------------------------------------
-alias realfanctrl='sudo /usr/local/etc/init.d/S60realfanctrld'
 
 # Short forms for the things you type most.
 alias rfc='realfanctrl'

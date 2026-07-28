@@ -42,6 +42,7 @@ SCP         ?= scp
 REMOTE_TMP  ?= ~/
 INITD       := /usr/local/etc/init.d/S60realfanctrld
 REMOTE_BIN  := /usr/local/bin/$(BINARY)
+REMOTE_CLI  := /usr/local/bin/realfanctrl
 REMOTE_CONF := /usr/local/etc/realfanctrl.conf
 
 .DEFAULT_GOAL := build
@@ -88,7 +89,7 @@ lint:
 dist: build
 	@mkdir -p $(DIST)
 	@tar czf $(DIST)/asustor-realfanctrl-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz \
-		$(BINARY) init.d/S60realfanctrld .bash_aliases \
+		$(BINARY) bin/realfanctrl init.d/S60realfanctrld .bash_aliases \
 		README.md INSTALL.md ASUSTOR-DEFECTS.md LICENSE examples
 	@echo "wrote $(DIST)/asustor-realfanctrl-$(VERSION)-$(GOOS)-$(GOARCH).tar.gz"
 
@@ -103,15 +104,16 @@ guard-nas:
 	@if [ -z "$(NAS)" ]; then \
 		echo "set NAS=<ssh-host>, e.g. make deploy NAS=cccnas6"; exit 1; fi
 
-## push-files: copy the binary and init script to NAS:~ (no install, no sudo)
+## push-files: copy binary, CLI, init script and aliases to NAS:~ (no sudo)
 push-files: guard-nas build
-	$(SCP) -q $(BINARY) init.d/S60realfanctrld .bash_aliases $(NAS):$(REMOTE_TMP)
+	$(SCP) -q $(BINARY) bin/realfanctrl init.d/S60realfanctrld .bash_aliases $(NAS):$(REMOTE_TMP)
 	@echo "copied to $(NAS):$(REMOTE_TMP)"
 
 ## remote-install: install from NAS:~ into /usr/local and (re)start the daemon
 remote-install: guard-nas
 	$(SSH) -t $(NAS) '\
 		sudo install -m 755 $(REMOTE_TMP)$(BINARY) $(REMOTE_BIN) && \
+		sudo install -m 755 $(REMOTE_TMP)realfanctrl $(REMOTE_CLI) && \
 		sudo install -m 755 $(REMOTE_TMP)S60realfanctrld $(INITD) && \
 		[ -f $(REMOTE_CONF) ] || sudo $(REMOTE_BIN) -write-config && \
 		sudo $(INITD) restart'
@@ -143,7 +145,7 @@ apply-adm: guard-nas
 uninstall: guard-nas
 	$(SSH) -t $(NAS) '\
 		sudo $(INITD) stop; \
-		sudo rm -f $(INITD) $(REMOTE_BIN); \
+		sudo rm -f $(INITD) $(REMOTE_BIN) $(REMOTE_CLI); \
 		echo "removed. $(REMOTE_CONF) kept; delete it manually if unwanted."'
 
 ## help: list available targets

@@ -148,8 +148,10 @@ make deploy NAS=your-nas-host
 
 ## CLI
 
-With [`.bash_aliases`](.bash_aliases) sourced on the NAS (via `~/.profile` —
-ADM has no bash, see [INSTALL.md](INSTALL.md#4-shell-aliases-optional-but-recommended)):
+`realfanctrl` is installed at `/usr/local/bin/realfanctrl`, which is on ADM's
+default PATH. **No alias or shell setup is needed** — it works from any shell,
+including non-interactive ones and cron. It re-invokes itself under `sudo` when
+you are not root.
 
 | Command | Does |
 |---------|------|
@@ -158,12 +160,26 @@ ADM has no bash, see [INSTALL.md](INSTALL.md#4-shell-aliases-optional-but-recomm
 | `realfanctrl restart` | reload binary and config |
 | `realfanctrl status` | sensors, curve target, real fan RPM |
 | `realfanctrl log` | follow the log |
-| `rfc-temps` | sensors only, without touching the fans |
-| `rfc-rpm` | what the MCU reports right now |
-| `rfc-conf` | edit the curve and restart |
+| `realfanctrl temps` | sensors only, without touching the fans |
+| `realfanctrl rpm` | what the MCU reports right now |
+| `realfanctrl check` | audit ADM's own fan settings |
+| `realfanctrl apply-config` | apply them and restart `emboardmand` |
+| `realfanctrl config` | edit the curve and restart |
+| `realfanctrl version` | version and build info |
+
+[`.bash_aliases`](.bash_aliases) is **optional** shorthand on top of that —
+`rfc` for `realfanctrl`, plus `rfc-status`, `rfc-log`, `rfc-temps`, `rfc-rpm`,
+`rfc-check`, `rfc-apply`, `rfc-conf`, and three raw diagnostics that have no
+`realfanctrl` equivalent:
+
+| Alias | Does |
+|-------|------|
 | `rfc-sensors` | every raw hwmon sensor (for porting to a new model) |
 | `rfc-slots` | NVMe bay → PCI address map (for `slot_map`) |
 | `rfc-adm-debug` | ASUSTOR's own fan logic, verbose |
+
+ADM has no bash, so those load from `~/.profile` — see
+[INSTALL.md](INSTALL.md#4-shell-aliases-optional).
 
 The daemon binary also runs standalone:
 

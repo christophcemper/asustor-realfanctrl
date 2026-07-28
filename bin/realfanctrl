@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# realfanctrl — command-line front end for the realfanctrld fan daemon.
+#
+# Author:     Christoph C. Cemper / Magosol Kft.
+# Repository: https://github.com/christophcemper/asustor-realfanctrl
+# License:    MIT — see LICENSE.  NO WARRANTY; tested only on ASUSTOR AS6812F.
+#
+# Installed as /usr/local/bin/realfanctrl, which is on ADM's default PATH, so
+# this works from any shell without sourcing anything. It is a thin dispatcher:
+# lifecycle verbs go to the init script, everything else to the daemon binary.
+#
+# POSIX sh only — ADM ships no bash.
+
+INITD=/usr/local/etc/init.d/S60realfanctrld
+DAEMON=/usr/local/bin/realfanctrld
+CONF=/usr/local/etc/realfanctrl.conf
+
+usage() {
+    cat <<EOF
+usage: realfanctrl <command>
+
+  start        start the fan daemon
+  stop         stop it (ADM's emboardmand resumes fan control)
+  restart      reload the binary and config
+  status       sensors, curve target and real fan RPM
+  log          follow the daemon log
+
+  temps        sensors only, without touching the fans
+  rpm          what the fan MCU reports right now
+  check        audit ADM's own fan settings
+  apply-config apply the recommended ADM fan settings, restart emboardmand
+  config       edit the curve, then restart
+  version      version and build info
+
+Tested only on ASUSTOR AS6812F / ADM 5.1.3.RI81. No warranty.
+EOF
+}
+
+cmd="$1"
+[ $# -gt 0 ] && shift
+
+# Commands that read only world-readable state run without root, so they never
+# prompt for a password. Everything else touches the fan MCU or ADM's init
+# scripts and re-execs under sudo below.
+case "$cmd" in
+    ""|help|-h|--help)
+        usage
+        [ -z "$cmd" ] && exit 1
+        exit 0
+        ;;
+    version|-v|--version)
+        exec "$DAEMON" -version
+        ;;
+    check)
+        exec "$DAEMON" -check
+        ;;
+esac
+
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo "$0" "$cmd" "$@"
+fi
+
+case "$cmd" in
+    start|stop|restart|status|log)
+        [ -x "$INITD" ] || { echo "realfanctrl: $INITD not installed" >&2; exit 1; }
+        exec "$INITD" "$cmd" "$@"
+        ;;
+    temps)
+        exec "$DAEMON" -config "$CONF" -status
+        ;;
+    rpm)
+        exec /usr/sbin/fanctrl -getfanspeed
+        ;;
+    apply-config)
+        exec "$DAEMON" -apply-config "$@"
+        ;;
+    config)
+        ${EDITOR:-vi} "$CONF" && exec "$INITD" restart
+        ;;
+    *)
+        echo "realfanctrl: unknown command '$cmd'" >&2
+        usage >&2
+        exit 1
+        ;;
+esac
