@@ -25,6 +25,8 @@ so they can be filed with ASUSTOR support and tracked to a resolution.
 |------|---------|-----------|-------|
 | _pending_ | _(ASUSTOR support portal / RMA / forum)_ | _(ticket no.)_ | _(fill in on submission)_ |
 
+Ready-to-send ticket text: [docs/asustor-support-ticket.md](docs/asustor-support-ticket.md).
+
 ## Environment
 
 | Item | Value |
