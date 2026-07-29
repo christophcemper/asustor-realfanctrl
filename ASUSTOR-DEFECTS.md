@@ -13,17 +13,17 @@ so they can be filed with ASUSTOR support and tracked to a resolution.
 
 | ID | Title | Severity | Found | Submitted | Response | Status |
 |----|-------|----------|-------|-----------|----------|--------|
-| [DEFECT-001](#defect-001--fan-pwm-ceiling-hardcoded-at-23-31-duty) | Fan PWM ceiling hardcoded at 23–31% duty | **Critical** | 2026-07-28 | _not yet submitted_ | — | Open |
-| [DEFECT-002](#defect-002--fan-control-ignores-nvme-sensor-1--sensor-2) | Fan control ignores NVMe Sensor 1 / Sensor 2 | **Critical** | 2026-07-28 | _not yet submitted_ | — | Open |
-| [DEFECT-003](#defect-003--ui-fan-speed-setting-has-no-effect) | UI fan speed setting has no effect | High | 2026-07-28 | _not yet submitted_ | — | Open |
-| [DEFECT-004](#defect-004--incomplete-model-profile-for-AS6812F / FS6812X) | Incomplete model profile for AS6812F / FS6812X | Medium | 2026-07-28 | _not yet submitted_ | — | Open |
-| [DEFECT-005](#defect-005--failed-lacp-setup-leaves-the-nas-unreachable) | Failed LACP setup leaves the NAS unreachable | High | 2026-07-28 | _not yet submitted_ | — | Open |
+| [DEFECT-001](#defect-001--fan-pwm-ceiling-hardcoded-at-23-31-duty) | Fan PWM ceiling hardcoded at 23–31% duty | **Critical** | 2026-07-28 | 2026-07-28 | — | Open |
+| [DEFECT-002](#defect-002--fan-control-ignores-nvme-sensor-1--sensor-2) | Fan control ignores NVMe Sensor 1 / Sensor 2 | **Critical** | 2026-07-28 | 2026-07-28 | — | Open |
+| [DEFECT-003](#defect-003--ui-fan-speed-setting-has-no-effect) | UI fan speed setting has no effect | High | 2026-07-28 | 2026-07-28 | — | Open |
+| [DEFECT-004](#defect-004--incomplete-model-profile-for-AS6812F / FS6812X) | Incomplete model profile for AS6812F / FS6812X | Medium | 2026-07-28 | 2026-07-28 | — | Open |
+| [DEFECT-005](#defect-005--failed-lacp-setup-leaves-the-nas-unreachable) | Failed LACP setup leaves the NAS unreachable | High | 2026-07-28 | 2026-07-28 | — | Open |
 
 **Submission log**
 
 | Date | Channel | Reference | Notes |
 |------|---------|-----------|-------|
-| _pending_ | _(ASUSTOR support portal / RMA / forum)_ | _(ticket no.)_ | _(fill in on submission)_ |
+| _pending_ | _(ASUSTOR support portal / RMA / forum)_ | 95850 | _(fill in on submission)_ |
 
 Ready-to-send ticket text: [docs/asustor-support-ticket.md](docs/asustor-support-ticket.md).
 
