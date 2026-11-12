@@ -99,8 +99,9 @@ control straight back to ADM.
 - **Handles lying sensors.** Some drives report a constant bogus value on an
   unimplemented register; `ignore_sensors` excludes them from the curve while
   still displaying them.
-- **Smooth spin-down.** Rises immediately, falls at a bounded rate, so the fans
-  don't oscillate audibly.
+- **No audible hunting.** Small rises wait `rise_delay_sec` (default 10 s), so
+  short CPU spikes don't rev the fans; big jumps (`rise_bypass`, default +40 PWM)
+  apply at once. Falls run at a bounded rate.
 - **Fails safe.** If no sensor can be read it goes to a configurable high PWM.
 - **Survives reboots**, installed where ADM's persistent init actually runs.
 - **Audits ADM's own settings** (`-check` / `-apply-config`) so that if the
@@ -203,6 +204,8 @@ realfanctrld -version        version, and the no-warranty reminder
 | `min_pwm` / `max_pwm` | clamp for the computed PWM |
 | `fallback_pwm` | used when no sensor can be read |
 | `cooldown_step` | max PWM drop per cycle — smooths spin-down |
+| `rise_delay_sec` | hold small rises this long, then use the lowest target seen (default 10; 0 = rise at once) |
+| `rise_bypass` | rises of at least this much PWM skip the delay (default 40) |
 | `log_delta` | suppress log lines until PWM moves this much |
 | `heartbeat_min` | log a line at least this often anyway |
 | `ssd_curve` / `cpu_curve` / `nic_curve` | `[{temp, pwm}, …]`, linearly interpolated |

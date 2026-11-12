@@ -110,6 +110,13 @@ type Config struct {
 	// CooldownStep caps how far PWM may drop per cycle, so falling
 	// temperatures produce a smooth spin-down instead of a step.
 	CooldownStep int `json:"cooldown_step"`
+	// RiseDelaySec holds back small PWM rises until the higher target has
+	// lasted this long, so short CPU spikes do not rev the fans. The rise then
+	// goes to the lowest target seen while waiting. 0 rises immediately.
+	RiseDelaySec int `json:"rise_delay_sec"`
+	// RiseBypass applies a rise at once when the target jumps by at least this
+	// much PWM, so real heat is never delayed.
+	RiseBypass int `json:"rise_bypass"`
 	// LogDelta suppresses log lines until PWM moves by at least this much.
 	LogDelta     int   `json:"log_delta"`
 	HeartbeatMin int   `json:"heartbeat_min"`
@@ -158,6 +165,8 @@ func defaultConfig() Config {
 		MaxPWM:       255,
 		FallbackPWM:  200,
 		CooldownStep: 2,
+		RiseDelaySec: 10,
+		RiseBypass:   40,
 		LogDelta:     3,
 		HeartbeatMin: 15,
 		SSDCurve: Curve{
@@ -210,6 +219,12 @@ func (c *Config) normalize() {
 	}
 	if c.FallbackPWM <= 0 {
 		c.FallbackPWM = 200
+	}
+	if c.RiseDelaySec < 0 {
+		c.RiseDelaySec = 0
+	}
+	if c.RiseBypass < 1 {
+		c.RiseBypass = 40
 	}
 	for _, cv := range []Curve{c.SSDCurve, c.CPUCurve, c.NICCurve} {
 		sort.Slice(cv, func(i, j int) bool { return cv[i].Temp < cv[j].Temp })
@@ -736,7 +751,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	applied := 0
+	ctl := &controller{cfg: cfg}
 	applyAndReport := func() (int, string) {
 		rs, err := readSensors(cfg)
 		peaks := map[string]Reading{}
@@ -745,16 +760,7 @@ func main() {
 		}
 		want, why := target(cfg, peaks)
 		want = clamp(want, cfg.MinPWM, cfg.MaxPWM)
-
-		// Rise immediately; fall no faster than CooldownStep per cycle.
-		switch {
-		case applied == 0:
-			applied = want
-		case want < applied-cfg.CooldownStep:
-			applied -= cfg.CooldownStep
-		default:
-			applied = want
-		}
+		applied := ctl.step(want, time.Now())
 
 		for _, id := range cfg.FanIDs {
 			if err := setFan(id, applied); err != nil {
@@ -809,6 +815,45 @@ func main() {
 		case <-ticker.C:
 		}
 	}
+}
+
+// controller turns each cycle's target PWM into the PWM actually applied.
+// Falls are limited to CooldownStep per cycle. Small rises wait RiseDelaySec
+// and then go to the lowest target seen meanwhile; rises of RiseBypass or
+// more apply at once.
+type controller struct {
+	cfg     Config
+	applied int
+	pending int // lowest target seen during a held-back rise; 0 = none
+	since   time.Time
+}
+
+func (c *controller) step(want int, now time.Time) int {
+	switch {
+	case c.applied == 0:
+		c.applied, c.pending = want, 0
+	case want > c.applied:
+		if c.cfg.RiseDelaySec <= 0 || want-c.applied >= c.cfg.RiseBypass {
+			c.applied, c.pending = want, 0
+			break
+		}
+		if c.pending == 0 {
+			c.pending, c.since = want, now
+		} else if want < c.pending {
+			c.pending = want
+		}
+		if now.Sub(c.since) >= time.Duration(c.cfg.RiseDelaySec)*time.Second {
+			c.applied, c.pending = c.pending, 0
+		}
+	default:
+		c.pending = 0
+		if want < c.applied-c.cfg.CooldownStep {
+			c.applied -= c.cfg.CooldownStep
+		} else {
+			c.applied = want
+		}
+	}
+	return c.applied
 }
 
 func abs(v int) int {
